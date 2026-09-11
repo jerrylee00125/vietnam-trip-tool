@@ -4,12 +4,12 @@
 
 <h1 align="center">越南購物小幫手</h1>
 
-<p align="center"><code>vietnam-trip-tool</code></p>
+<p align="center">vietnam-trip-tool</p>
 
 <p align="center">越南盾的零好多？先別急著心算，交給它快速換算、加總與找零。</p>
 
 <p align="center">
-  <a href="https://jerrylee00125.github.io/vietnam-trip-tool/"><strong>🚀 立即開啟 APP</strong></a>
+  <a href="https://jerrylee00125.github.io/vietnam-trip-tool/"><strong>👉 立即開啟 APP 👈</strong></a>
 </p>
 
 ## 🇻🇳 為什麼需要它？
