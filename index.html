@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#102f4e" />
+    <meta
+      name="description"
+      content="在越南旅途中快速換算越南盾、整理購物金額與計算找零。"
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=21" />
+    <title>越南購物小幫手</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="brand-mark-ring"></span>
+            <span class="brand-mark-dot"></span>
+          </div>
+          <div>
+            <p class="eyebrow">VIETNAM TRIP TOOL</p>
+            <h1>越南購物小幫手</h1>
+          </div>
+        </div>
+      </header>
+
+      <nav class="bottom-tabs" role="tablist" aria-label="主要功能">
+        <button
+          class="bottom-tab is-active"
+          id="conversionTab"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="conversionPanel"
+          tabindex="0"
+        >
+          <span class="bottom-tab-number" aria-hidden="true">01</span>
+          <span>快速換算</span>
+        </button>
+        <button
+          class="bottom-tab"
+          id="shoppingTab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="shoppingPanel"
+          tabindex="-1"
+        >
+          <span class="bottom-tab-number" aria-hidden="true">02</span>
+          <span>購物付款</span>
+        </button>
+      </nav>
+
+      <main>
+        <div class="tab-panels">
+          <div
+            class="tab-panel"
+            id="conversionPanel"
+            role="tabpanel"
+            aria-labelledby="conversionTab"
+            tabindex="0"
+          >
+            <section class="card conversion-card" aria-labelledby="conversionTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">快速換算</p>
+                  <h2 id="conversionTitle">現在要買多少？</h2>
+                </div>
+                <span class="section-number" aria-hidden="true">01</span>
+              </div>
+
+              <label class="field-label" for="conversionInput">越南盾金額</label>
+              <div class="money-input-wrap money-input-wrap-large">
+                <span class="currency-prefix" aria-hidden="true">₫</span>
+                <input
+                  id="conversionInput"
+                  class="money-input money-input-large"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="例如 150k"
+                  aria-describedby="conversionHint conversionError"
+                />
+              </div>
+              <div class="conversion-input-meta">
+                <p class="field-hint" id="conversionHint">可輸入 150000、150k 或 1.2m</p>
+                <button class="text-button clear-conversion-button" id="clearConversionButton" type="button">清除金額</button>
+              </div>
+              <p class="field-error" id="conversionError" role="alert"></p>
+
+              <div class="quick-grid" aria-label="快速輸入金額">
+                <button class="quick-button" type="button" data-amount="50000">50k</button>
+                <button class="quick-button" type="button" data-amount="100000">100k</button>
+                <button class="quick-button" type="button" data-amount="200000">200k</button>
+                <button class="quick-button" type="button" data-amount="500000">500k</button>
+              </div>
+
+              <div class="conversion-result" aria-live="polite" aria-atomic="true">
+                <div>
+                  <p class="result-label">約新台幣</p>
+                  <strong class="result-amount" id="twdEstimate">—</strong>
+                </div>
+                <div class="result-note" id="conversionNote">先設定下方匯率</div>
+              </div>
+            </section>
+
+            <section class="card rate-card" aria-labelledby="rateTitle">
+              <div class="rate-card-copy">
+                <p class="section-kicker">你的估算基準</p>
+                <h2 id="rateTitle">目前估算匯率</h2>
+                <p>請依照換匯單或刷卡實際匯率調整。</p>
+              </div>
+              <div class="rate-control">
+                <label class="field-label" for="rateInput">1,000 越南盾 = NT$</label>
+                <div class="rate-input-wrap">
+                  <input
+                    id="rateInput"
+                    type="number"
+                    inputmode="decimal"
+                    min="0.01"
+                    step="0.01"
+                    value="1.30"
+                    aria-describedby="rateError"
+                  />
+                </div>
+                <p class="field-error" id="rateError" role="alert"></p>
+              </div>
+            </section>
+          </div>
+
+          <div
+            class="tab-panel"
+            id="shoppingPanel"
+            role="tabpanel"
+            aria-labelledby="shoppingTab"
+            tabindex="0"
+            hidden
+          >
+            <div class="shopping-rate-summary" role="status">
+              <div>
+                <p class="section-kicker">目前估算匯率</p>
+                <strong id="shoppingRateSummary">1,000 越南盾 ≈ NT$1.30</strong>
+              </div>
+              <button class="secondary-button" id="goToRateButton" type="button">調整匯率</button>
+            </div>
+
+            <section
+              class="restored-cart-notice"
+              id="restoredCartNotice"
+              aria-labelledby="restoredCartNoticeTitle"
+              hidden
+            >
+              <div class="restored-cart-copy">
+                <strong id="restoredCartNoticeTitle">目前沿用上次清單</strong>
+                <p id="restoredCartSummary" role="status" aria-live="polite"></p>
+              </div>
+              <button class="primary-button new-purchase-button" id="startNewPurchaseButton" type="button">
+                開始新一筆購物
+              </button>
+            </section>
+
+            <section class="card shopping-card" aria-labelledby="shoppingTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">一起算更準</p>
+                  <h2 id="shoppingTitle">購物清單</h2>
+                </div>
+                <span class="section-number" aria-hidden="true">02</span>
+              </div>
+
+              <form id="itemForm" novalidate>
+                <div class="item-form-grid">
+                  <div class="form-field item-name-field">
+                    <label class="field-label" for="itemName">商品名稱（可不填）</label>
+                    <input id="itemName" type="text" maxlength="40" placeholder="例如：腰果" />
+                  </div>
+                  <div class="form-field item-price-field">
+                    <label class="field-label" for="itemPrice">單價（越南盾）</label>
+                    <input
+                      id="itemPrice"
+                      type="text"
+                      inputmode="decimal"
+                      autocomplete="off"
+                      placeholder="150k"
+                      aria-describedby="priceError"
+                    />
+                    <p class="field-error" id="priceError" role="alert"></p>
+                  </div>
+                  <div class="form-field item-quantity-field">
+                    <label class="field-label" for="itemQuantity">數量</label>
+                    <input id="itemQuantity" type="number" inputmode="numeric" min="1" step="1" value="1" />
+                    <p class="field-error" id="quantityError" role="alert"></p>
+                  </div>
+                  <button class="primary-button add-button" type="submit">
+                    <span aria-hidden="true">＋</span> 加入清單
+                  </button>
+                </div>
+              </form>
+
+              <p class="form-status" id="formStatus" role="status"></p>
+
+              <div class="cart-list-wrap">
+                <ul class="cart-list" id="cartList" aria-live="polite"></ul>
+                <div class="empty-state" id="emptyState">
+                  <span class="empty-icon" aria-hidden="true">＋</span>
+                  <p>還沒有商品，先加入一項試試看。</p>
+                </div>
+              </div>
+
+              <div class="total-row">
+                <span>購物總額</span>
+                <div class="total-amount">
+                  <strong id="cartTotal">₫0</strong>
+                  <span id="cartTotalTwd">約 NT$0</span>
+                </div>
+              </div>
+              <div
+                class="shopping-note-suggestion is-hidden"
+                id="shoppingNoteSuggestion"
+                aria-labelledby="shoppingNoteSuggestionTitle"
+                aria-live="polite"
+              >
+                <p class="note-breakdown-label" id="shoppingNoteSuggestionTitle">鈔票建議（由大到小）</p>
+                <div class="shopping-note-list" id="shoppingNoteList" role="list" aria-label="支付購物總額的鈔票建議"></div>
+              </div>
+              <button class="text-button danger-button" id="clearCartButton" type="button">清除購物清單</button>
+            </section>
+
+            <section class="card payment-card" aria-labelledby="paymentTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">付款前看一眼</p>
+                  <h2 id="paymentTitle">付款與找零</h2>
+                </div>
+                <span class="section-number" aria-hidden="true">03</span>
+              </div>
+
+              <div class="payment-summary">
+                <span>本次應付</span>
+                <strong id="paymentTotal">₫0</strong>
+              </div>
+
+              <label class="field-label" for="paymentInput">你準備拿出多少？</label>
+              <div class="money-input-wrap money-input-wrap-large">
+                <span class="currency-prefix" aria-hidden="true">₫</span>
+                <input
+                  id="paymentInput"
+                  class="money-input money-input-large"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="點下面鈔票，或直接輸入"
+                  aria-describedby="paymentHint"
+                />
+              </div>
+              <div class="payment-input-meta">
+                <p class="field-hint" id="paymentHint">也可以點下方面額圖片加入付款金額。</p>
+                <button class="text-button clear-payment-button" id="clearPaymentButton" type="button">清除付款金額</button>
+              </div>
+
+              <div class="banknote-guide" aria-labelledby="banknoteGuideTitle">
+                <div class="banknote-guide-heading">
+                  <div>
+                    <p class="section-kicker">面額對照</p>
+                    <h3 id="banknoteGuideTitle">看清楚再拿錢</h3>
+                    <p class="banknote-guide-hint">點一下圖片，就把這張鈔票加入付款金額。</p>
+                  </div>
+                  <span class="banknote-count">9 種面額</span>
+                </div>
+                <div class="banknote-grid" id="banknoteGrid" aria-label="越南鈔票面額圖片"></div>
+              </div>
+
+              <div class="change-panel" id="changePanel" aria-live="polite" aria-atomic="true">
+                <div class="change-panel-placeholder">
+                  <span class="placeholder-mark" aria-hidden="true">₫</span>
+                  <p>加入商品後，這裡會告訴你要找多少錢。</p>
+                </div>
+              </div>
+
+              <aside class="cash-tip">
+                <span class="tip-icon" aria-hidden="true">!</span>
+                <p>付款和找零都在櫃檯前數清楚；20k 和 500k 都可能是藍色調，先看數字再交出去。</p>
+              </aside>
+            </section>
+          </div>
+        </div>
+      </main>
+
+    </div>
+
+    <script src="./app.js?v=21" defer></script>
+  </body>
+</html>
