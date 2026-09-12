@@ -16,19 +16,48 @@
     { amount: 2000, short: "2k", type: "棉質紙鈔", image: "./assets/denominations/2000.jpg" },
     { amount: 1000, short: "1k", type: "棉質紙鈔", image: "./assets/denominations/1000.jpg" },
   ];
+  const CONVERSION_PRESETS = {
+    "vnd-to-twd": [
+      { value: 50000, label: "50k" },
+      { value: 100000, label: "100k" },
+      { value: 200000, label: "200k" },
+      { value: 500000, label: "500k" },
+    ],
+    "twd-to-vnd": [
+      { value: 100, label: "NT$100" },
+      { value: 500, label: "NT$500" },
+      { value: 1000, label: "NT$1,000" },
+      { value: 2000, label: "NT$2,000" },
+    ],
+  };
 
   const elements = {
     conversionTab: document.getElementById("conversionTab"),
     shoppingTab: document.getElementById("shoppingTab"),
     conversionPanel: document.getElementById("conversionPanel"),
     shoppingPanel: document.getElementById("shoppingPanel"),
+    cartStepButton: document.getElementById("cartStepButton"),
+    paymentStepButton: document.getElementById("paymentStepButton"),
+    paymentStepHint: document.getElementById("paymentStepHint"),
+    cartStepPanel: document.getElementById("cartStepPanel"),
+    paymentStepPanel: document.getElementById("paymentStepPanel"),
+    shoppingTitle: document.getElementById("shoppingTitle"),
+    paymentTitle: document.getElementById("paymentTitle"),
+    vndToTwdButton: document.getElementById("vndToTwdButton"),
+    twdToVndButton: document.getElementById("twdToVndButton"),
+    conversionInputLabel: document.getElementById("conversionInputLabel"),
+    conversionCurrencyPrefix: document.getElementById("conversionCurrencyPrefix"),
     conversionInput: document.getElementById("conversionInput"),
     clearConversionButton: document.getElementById("clearConversionButton"),
+    conversionHint: document.getElementById("conversionHint"),
     conversionError: document.getElementById("conversionError"),
     conversionNote: document.getElementById("conversionNote"),
+    conversionResultLabel: document.getElementById("conversionResultLabel"),
+    conversionQuickGrid: document.getElementById("conversionQuickGrid"),
     twdEstimate: document.getElementById("twdEstimate"),
     rateInput: document.getElementById("rateInput"),
     rateError: document.getElementById("rateError"),
+    denominationReferenceGrid: document.getElementById("denominationReferenceGrid"),
     itemForm: document.getElementById("itemForm"),
     itemName: document.getElementById("itemName"),
     itemPrice: document.getElementById("itemPrice"),
@@ -46,9 +75,13 @@
     restoredCartSummary: document.getElementById("restoredCartSummary"),
     startNewPurchaseButton: document.getElementById("startNewPurchaseButton"),
     shoppingNoteSuggestion: document.getElementById("shoppingNoteSuggestion"),
+    shoppingNoteCount: document.getElementById("shoppingNoteCount"),
     shoppingNoteList: document.getElementById("shoppingNoteList"),
+    goToPaymentButton: document.getElementById("goToPaymentButton"),
+    backToCartButton: document.getElementById("backToCartButton"),
     clearCartButton: document.getElementById("clearCartButton"),
     paymentTotal: document.getElementById("paymentTotal"),
+    paymentTotalTwd: document.getElementById("paymentTotalTwd"),
     paymentInput: document.getElementById("paymentInput"),
     clearPaymentButton: document.getElementById("clearPaymentButton"),
     banknoteGrid: document.getElementById("banknoteGrid"),
@@ -59,6 +92,9 @@
   let cart = readCart();
   let isUsingRestoredCart = cart.length > 0;
   let banknoteCounts = {};
+  let activeShoppingStep = "cart";
+  let conversionDirection = "vnd-to-twd";
+  let hasPlayedRestoredNoticeEffect = false;
 
   function setActiveTab(tabName, moveFocus = false) {
     const isConversion = tabName === "conversion";
@@ -75,6 +111,72 @@
     });
 
     if (moveFocus) activeTab.focus();
+    if (isConversion) {
+      elements.restoredCartNotice.classList.remove("is-attention");
+    } else {
+      playRestoredCartNoticeEffect();
+    }
+  }
+
+  function playRestoredCartNoticeEffect() {
+    if (
+      hasPlayedRestoredNoticeEffect ||
+      !isUsingRestoredCart ||
+      cart.length === 0 ||
+      elements.restoredCartNotice.hidden ||
+      elements.shoppingPanel.hidden
+    ) return;
+
+    hasPlayedRestoredNoticeEffect = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    elements.restoredCartNotice.classList.add("is-attention");
+  }
+
+  function dismissRestoredCartNoticeEffect() {
+    hasPlayedRestoredNoticeEffect = true;
+    elements.restoredCartNotice.classList.remove("is-attention");
+  }
+
+  function setShoppingStep(stepName, moveFocus = false) {
+    const isPayment = stepName === "payment";
+    if (isPayment && cart.length === 0) return;
+
+    activeShoppingStep = isPayment ? "payment" : "cart";
+    elements.shoppingPanel.classList.toggle("is-payment-step", isPayment);
+    elements.cartStepPanel.hidden = isPayment;
+    elements.paymentStepPanel.hidden = !isPayment;
+
+    [elements.cartStepButton, elements.paymentStepButton].forEach((button) => {
+      const isActive = button === (isPayment ? elements.paymentStepButton : elements.cartStepButton);
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "step");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+
+    if (moveFocus) {
+      const target = isPayment ? elements.paymentTitle : elements.shoppingTitle;
+      target.focus();
+    }
+  }
+
+  function updateShoppingStepAvailability() {
+    const hasItems = cart.length > 0;
+    elements.paymentStepButton.disabled = !hasItems;
+    elements.goToPaymentButton.disabled = !hasItems;
+    elements.paymentStepHint.classList.toggle("is-hidden", hasItems);
+
+    [elements.paymentStepButton, elements.goToPaymentButton].forEach((button) => {
+      if (hasItems) {
+        button.removeAttribute("aria-describedby");
+      } else {
+        button.setAttribute("aria-describedby", "paymentStepHint");
+      }
+    });
+
+    if (!hasItems && activeShoppingStep === "payment") setShoppingStep("cart");
   }
 
   function handleTabKeydown(event) {
@@ -123,6 +225,16 @@
     return Math.round(parsed);
   }
 
+  function parseTwd(value) {
+    const source = String(value ?? "").trim();
+    if (!source) return null;
+    if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(source)) return null;
+
+    const parsed = Number(source.replace(/,/g, ""));
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > Number.MAX_SAFE_INTEGER) return null;
+    return parsed;
+  }
+
   function formatNumber(value) {
     return new Intl.NumberFormat("en-US").format(Math.round(value));
   }
@@ -163,6 +275,31 @@
         </div>
       </button>
     `).join("");
+  }
+
+  function renderDenominationReference() {
+    elements.denominationReferenceGrid.innerHTML = BANKNOTES.map((note) => {
+      const twdValue = (note.amount / 1000) * rate;
+      return `
+        <div
+          class="denomination-reference-card"
+          role="listitem"
+          aria-label="${note.short} 越南盾，約 ${formatTwd(twdValue)}"
+        >
+          <img
+            class="banknote-image"
+            src="${note.image}"
+            alt="越南 ${formatNumber(note.amount)} đồng 鈔票正面官方樣張"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="banknote-card-footer">
+            <strong>${note.short}</strong>
+            <span>約 ${formatTwd(twdValue)}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
   }
 
   function updateBanknoteCount(amount) {
@@ -245,10 +382,70 @@
     return Number.isFinite(value) && value > 0 ? value : null;
   }
 
+  function getConversionOutput(rawValue, direction = conversionDirection) {
+    if (direction === "vnd-to-twd") {
+      const amount = parseVnd(rawValue);
+      if (amount === null || amount === 0) return null;
+      return Math.round((amount / 1000) * rate);
+    }
+
+    const amount = parseTwd(rawValue);
+    if (amount === null || amount === 0) return null;
+    const calculatedVnd = (amount / rate) * 1000;
+    if (!Number.isSafeInteger(Math.round(calculatedVnd))) return null;
+    return Math.max(1000, Math.round(calculatedVnd / 1000) * 1000);
+  }
+
+  function renderConversionDirection() {
+    const isVndToTwd = conversionDirection === "vnd-to-twd";
+    const activeButton = isVndToTwd ? elements.vndToTwdButton : elements.twdToVndButton;
+
+    [elements.vndToTwdButton, elements.twdToVndButton].forEach((button) => {
+      const isActive = button === activeButton;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+
+    elements.conversionInputLabel.textContent = isVndToTwd ? "越南盾金額" : "新台幣金額";
+    elements.conversionCurrencyPrefix.textContent = isVndToTwd ? "₫" : "NT$";
+    elements.conversionInput.placeholder = isVndToTwd ? "例如 150k" : "例如 1,000";
+    elements.conversionInput.inputMode = "decimal";
+    elements.conversionHint.textContent = isVndToTwd
+      ? "可輸入 150000、150k、1.2m 或 150.000"
+      : "可輸入 1000、1,000 或小數";
+    elements.conversionResultLabel.textContent = isVndToTwd ? "約新台幣" : "約越南盾";
+    elements.conversionQuickGrid.setAttribute(
+      "aria-label",
+      isVndToTwd ? "快速輸入越南盾金額" : "快速輸入新台幣金額",
+    );
+
+    const presets = CONVERSION_PRESETS[conversionDirection];
+    elements.conversionQuickGrid.querySelectorAll("[data-amount]").forEach((button, index) => {
+      const preset = presets[index];
+      button.dataset.amount = String(preset.value);
+      button.textContent = preset.label;
+    });
+  }
+
+  function setConversionDirection(direction) {
+    if (direction === conversionDirection) {
+      elements.conversionInput.focus();
+      return;
+    }
+
+    const convertedValue = getConversionOutput(elements.conversionInput.value);
+    conversionDirection = direction;
+    renderConversionDirection();
+    elements.conversionInput.value = convertedValue === null ? "" : String(convertedValue);
+    updateConversion();
+    elements.conversionInput.focus();
+  }
+
   function updateConversion() {
     const rawValue = elements.conversionInput.value;
     clearError(elements.conversionError);
-    const amount = parseVnd(rawValue);
+    const isVndToTwd = conversionDirection === "vnd-to-twd";
+    const amount = isVndToTwd ? parseVnd(rawValue) : parseTwd(rawValue);
 
     if (!rawValue.trim()) {
       elements.twdEstimate.textContent = "—";
@@ -259,15 +456,38 @@
 
     if (amount === null || amount === 0) {
       elements.twdEstimate.textContent = "—";
-      elements.conversionNote.textContent = "請輸入有效的越南盾金額";
+      elements.conversionNote.textContent = isVndToTwd
+        ? "請輸入有效的越南盾金額"
+        : "請輸入有效的新台幣金額";
       elements.conversionInput.setAttribute("aria-invalid", "true");
-      if (rawValue.trim()) showError(elements.conversionError, "可輸入 150000、150k 或 1.2m。");
+      if (rawValue.trim()) {
+        showError(
+          elements.conversionError,
+          isVndToTwd
+            ? "可輸入 150000、150k、1.2m 或 150.000。"
+            : "可輸入 1000、1,000 或最多兩位小數。",
+        );
+      }
       return;
     }
 
     elements.conversionInput.removeAttribute("aria-invalid");
-    elements.twdEstimate.textContent = formatTwd((amount / 1000) * rate);
-    elements.conversionNote.textContent = `${formatVnd(amount)} ÷ 1,000 × ${rate.toFixed(2)}`;
+    if (isVndToTwd) {
+      elements.twdEstimate.textContent = formatTwd((amount / 1000) * rate);
+      elements.conversionNote.textContent = `${formatVnd(amount)} ÷ 1,000 × ${rate.toFixed(2)}`;
+      return;
+    }
+
+    const convertedVnd = getConversionOutput(rawValue, "twd-to-vnd");
+    if (convertedVnd === null) {
+      elements.twdEstimate.textContent = "—";
+      elements.conversionNote.textContent = "金額超出可換算範圍";
+      elements.conversionInput.setAttribute("aria-invalid", "true");
+      showError(elements.conversionError, "請輸入較小的新台幣金額。");
+      return;
+    }
+    elements.twdEstimate.textContent = formatVnd(convertedVnd);
+    elements.conversionNote.textContent = `${formatTwd(amount)} ÷ ${rate.toFixed(2)} × 1,000，取整至千盾`;
   }
 
   function updateRate() {
@@ -285,6 +505,7 @@
     saveRate();
     updateShoppingRateSummary();
     updateConversion();
+    renderDenominationReference();
     updatePayment();
   }
 
@@ -295,6 +516,7 @@
   function updateRestoredCartNotice() {
     const shouldShow = isUsingRestoredCart && cart.length > 0;
     elements.restoredCartNotice.hidden = !shouldShow;
+    if (!shouldShow) elements.restoredCartNotice.classList.remove("is-attention");
     elements.restoredCartSummary.textContent = shouldShow
       ? `共 ${cart.length} 筆商品，合計 ${formatVnd(getCartTotal())}`
       : "";
@@ -338,11 +560,13 @@
 
     elements.cartTotal.textContent = formatVnd(getCartTotal());
     elements.paymentTotal.textContent = formatVnd(getCartTotal());
+    updateShoppingStepAvailability();
     updateRestoredCartNotice();
     updatePayment();
   }
 
   function startNewPurchase() {
+    dismissRestoredCartNoticeEffect();
     isUsingRestoredCart = false;
     cart = [];
     saveCart();
@@ -355,6 +579,8 @@
 
     elements.paymentInput.value = "";
     resetBanknoteCounts();
+    elements.shoppingNoteSuggestion.open = false;
+    setShoppingStep("cart");
     renderCart();
     elements.formStatus.textContent = "已開始新一筆購物";
     elements.itemName.focus();
@@ -398,7 +624,10 @@
 
   function removeItem(id) {
     cart = cart.filter((item) => item.id !== id);
-    if (cart.length === 0) isUsingRestoredCart = false;
+    if (cart.length === 0) {
+      dismissRestoredCartNoticeEffect();
+      isUsingRestoredCart = false;
+    }
     saveCart();
     renderCart();
   }
@@ -417,15 +646,17 @@
 
   function renderShoppingNoteSuggestion(total) {
     if (total === 0) {
-      elements.shoppingNoteSuggestion.classList.add("is-hidden");
+      elements.shoppingNoteSuggestion.hidden = true;
+      elements.shoppingNoteSuggestion.open = false;
+      elements.shoppingNoteCount.textContent = "共 0 種面額";
       elements.shoppingNoteList.innerHTML = "";
       return;
     }
 
-    const noteList = breakdownChange(total)
+    const notes = breakdownChange(total).filter((note) => getBanknote(note.denomination));
+    const noteList = notes
       .map((note) => {
         const banknote = getBanknote(note.denomination);
-        if (!banknote) return "";
         return `
           <div class="shopping-note-card" role="listitem">
             <div class="shopping-note-image-wrap">
@@ -448,7 +679,9 @@
       .join("");
 
     elements.shoppingNoteList.innerHTML = noteList;
-    elements.shoppingNoteSuggestion.classList.toggle("is-hidden", noteList === "");
+    elements.shoppingNoteCount.textContent = `共 ${notes.length} 種面額`;
+    elements.shoppingNoteSuggestion.hidden = noteList === "";
+    if (noteList === "") elements.shoppingNoteSuggestion.open = false;
   }
 
   function renderChange(change) {
@@ -495,6 +728,7 @@
     elements.cartTotal.textContent = formatVnd(total);
     elements.cartTotalTwd.textContent = `約 ${formatTwd((total / 1000) * rate)}`;
     elements.paymentTotal.textContent = formatVnd(total);
+    elements.paymentTotalTwd.textContent = `約 ${formatTwd((total / 1000) * rate)}`;
     renderShoppingNoteSuggestion(total);
 
     if (total === 0) {
@@ -573,11 +807,20 @@
   elements.shoppingTab.addEventListener("click", () => setActiveTab("shopping"));
   elements.conversionTab.addEventListener("keydown", handleTabKeydown);
   elements.shoppingTab.addEventListener("keydown", handleTabKeydown);
+  elements.vndToTwdButton.addEventListener("click", () => setConversionDirection("vnd-to-twd"));
+  elements.twdToVndButton.addEventListener("click", () => setConversionDirection("twd-to-vnd"));
+  elements.restoredCartNotice.addEventListener("animationend", () => {
+    elements.restoredCartNotice.classList.remove("is-attention");
+  });
   elements.goToRateButton.addEventListener("click", () => {
     setActiveTab("conversion");
     elements.rateInput.focus();
   });
   elements.startNewPurchaseButton.addEventListener("click", startNewPurchase);
+  elements.cartStepButton.addEventListener("click", () => setShoppingStep("cart", true));
+  elements.paymentStepButton.addEventListener("click", () => setShoppingStep("payment", true));
+  elements.goToPaymentButton.addEventListener("click", () => setShoppingStep("payment", true));
+  elements.backToCartButton.addEventListener("click", () => setShoppingStep("cart", true));
   elements.clearConversionButton.addEventListener("click", () => {
     elements.conversionInput.value = "";
     updateConversion();
@@ -592,11 +835,17 @@
   });
   elements.clearCartButton.addEventListener("click", () => {
     if (cart.length === 0) return;
+    dismissRestoredCartNoticeEffect();
     isUsingRestoredCart = false;
     cart = [];
     saveCart();
+    elements.paymentInput.value = "";
+    resetBanknoteCounts();
+    elements.shoppingNoteSuggestion.open = false;
+    setShoppingStep("cart");
     renderCart();
     elements.formStatus.textContent = "已清除購物清單";
+    elements.itemName.focus();
   });
   elements.paymentInput.addEventListener("input", updatePayment);
   elements.banknoteGrid.addEventListener("click", (event) => {
@@ -613,14 +862,17 @@
     button.addEventListener("click", () => setConversionAmount(Number(button.dataset.amount)));
   });
   elements.rateInput.value = rate.toFixed(2);
+  renderConversionDirection();
   updateShoppingRateSummary();
   setActiveTab("conversion");
+  setShoppingStep("cart");
   renderBanknoteGuide();
+  renderDenominationReference();
   renderCart();
   updateConversion();
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js?v=21").catch(() => {
+      navigator.serviceWorker.register("./service-worker.js?v=23").catch(() => {
         // The calculator remains fully usable if a local server does not support PWA registration.
       });
     });
