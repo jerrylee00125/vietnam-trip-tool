@@ -1,10 +1,10 @@
-const CACHE_NAME = "vietnam-shopping-v23";
-// Refresh the completed v23 app shell after converter, notice, or denomination guide changes.
+const CACHE_NAME = "vietnam-shopping-v24";
+// Refresh the v24 app shell after the restored-list attention sequence changes.
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=23",
-  "./app.js?v=23",
+  "./styles.css?v=24",
+  "./app.js?v=24",
   "./manifest.webmanifest",
   "./favicon.svg",
   "./assets/denominations/500000.jpg",
