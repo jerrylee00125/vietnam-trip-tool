@@ -10,7 +10,7 @@
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="stylesheet" href="./styles.css?v=24" />
+    <link rel="stylesheet" href="./styles.css?v=29" />
     <title>越南購物小幫手</title>
   </head>
   <body>
@@ -53,6 +53,18 @@
           <span class="bottom-tab-number" aria-hidden="true">02</span>
           <span>購物付款</span>
         </button>
+        <button
+          class="bottom-tab"
+          id="phrasesTab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="phrasesPanel"
+          tabindex="-1"
+        >
+          <span class="bottom-tab-number" aria-hidden="true">03</span>
+          <span>常用語</span>
+        </button>
       </nav>
 
       <main>
@@ -64,6 +76,31 @@
             aria-labelledby="conversionTab"
             tabindex="0"
           >
+            <section class="card rate-onboarding" id="rateOnboarding" aria-labelledby="rateOnboardingTitle" hidden>
+              <div class="rate-onboarding-heading">
+                <span class="rate-onboarding-mark" aria-hidden="true">₫</span>
+                <div>
+                  <p class="section-kicker">第一次使用</p>
+                  <h2 id="rateOnboardingTitle">先設定換算基準</h2>
+                  <p>選一個你最方便的方式，讓台幣估算更接近這趟旅程的實際花費。</p>
+                </div>
+              </div>
+              <div class="rate-onboarding-actions">
+                <button class="primary-button" id="onboardingActualRateButton" type="button">
+                  用換匯金額幫我算
+                </button>
+                <button class="secondary-button" id="onboardingDirectRateButton" type="button">
+                  我知道匯率，直接輸入
+                </button>
+                <button class="onboarding-default-button" id="onboardingDefaultRateButton" type="button">
+                  先用預設值 NT$1.30
+                </button>
+              </div>
+              <p class="rate-onboarding-note">
+                預設值只供估算，不是銀行、信用卡或換匯所提供的即時匯率。
+              </p>
+            </section>
+
             <section class="card conversion-card" aria-labelledby="conversionTitle">
               <div class="section-heading">
                 <div>
@@ -127,28 +164,120 @@
               </div>
             </section>
 
-            <section class="card rate-card" aria-labelledby="rateTitle">
-              <div class="rate-card-copy">
-                <p class="section-kicker">你的估算基準</p>
-                <h2 id="rateTitle">目前估算匯率</h2>
-                <p>請依照換匯單或刷卡實際匯率調整。</p>
-              </div>
-              <div class="rate-control">
-                <label class="field-label" for="rateInput">1,000 越南盾 = NT$</label>
-                <div class="rate-input-wrap">
-                  <input
-                    id="rateInput"
-                    type="number"
-                    inputmode="decimal"
-                    min="0.01"
-                    step="0.01"
-                    value="1.30"
-                    aria-describedby="rateError"
-                  />
+            <details class="card rate-settings-card" id="rateSettingsCard">
+              <summary class="rate-settings-summary">
+                <span class="rate-settings-heading">
+                  <span class="section-kicker">你的估算基準</span>
+                  <strong>換算基準</strong>
+                  <small>僅供估算，不是即時匯率</small>
+                </span>
+                <span class="rate-settings-current">
+                  <small>目前使用</small>
+                  <strong id="rateSettingsSummary">₫1,000 ≈ NT$1.30</strong>
+                </span>
+              </summary>
+
+              <div class="rate-settings-body">
+                <div class="rate-mode-switch" role="group" aria-label="匯率設定方式">
+                  <button
+                    class="rate-mode-button is-active"
+                    id="directRateModeButton"
+                    type="button"
+                    aria-pressed="true"
+                    aria-controls="directRatePanel"
+                  >
+                    直接修改匯率
+                  </button>
+                  <button
+                    class="rate-mode-button"
+                    id="actualRateModeButton"
+                    type="button"
+                    aria-pressed="false"
+                    aria-controls="actualRatePanel"
+                  >
+                    用換匯金額計算
+                  </button>
                 </div>
-                <p class="field-error" id="rateError" role="alert"></p>
+
+                <section class="rate-mode-panel direct-rate-panel" id="directRatePanel" aria-labelledby="directRateModeButton">
+                  <div class="rate-mode-copy">
+                    <h3>直接修改匯率</h3>
+                    <p>如果你已經知道匯率，可以直接設定每 1,000 越南盾約等於多少臺幣。</p>
+                  </div>
+                  <div class="direct-rate-control">
+                    <label class="field-label" for="rateInput">1,000 越南盾 = NT$</label>
+                    <div class="rate-input-wrap">
+                      <input
+                        id="rateInput"
+                        type="number"
+                        inputmode="decimal"
+                        min="0.01"
+                        step="0.01"
+                        value="1.30"
+                        aria-describedby="rateError rateSetupStatus"
+                      />
+                    </div>
+                    <p class="field-error" id="rateError" role="alert"></p>
+                    <p class="rate-setup-status" id="rateSetupStatus" aria-live="polite"></p>
+                  </div>
+                </section>
+
+                <section class="rate-mode-panel actual-rate-panel" id="actualRatePanel" aria-labelledby="actualRateModeButton" hidden>
+                  <p class="actual-exchange-intro" id="actualExchangeDescription">
+                    輸入這次實際付出的臺幣和拿到的越南盾，算出真正換到的匯率。
+                  </p>
+
+                  <div class="actual-exchange-input-grid">
+                    <div class="actual-exchange-field">
+                      <label class="field-label" for="actualTwdInput">我實際付出</label>
+                      <div class="money-input-wrap actual-exchange-input-wrap">
+                        <span class="currency-prefix" aria-hidden="true">NT$</span>
+                        <input
+                          id="actualTwdInput"
+                          class="money-input"
+                          type="text"
+                          inputmode="decimal"
+                          autocomplete="off"
+                          placeholder="例如 3,660"
+                          aria-describedby="actualTwdHint actualTwdError"
+                        />
+                      </div>
+                      <p class="field-hint" id="actualTwdHint">可輸入 3660、3,660 或最多兩位小數</p>
+                      <p class="field-error" id="actualTwdError" role="alert"></p>
+                    </div>
+
+                    <div class="actual-exchange-field">
+                      <label class="field-label" for="actualVndInput">我實際拿到</label>
+                      <div class="money-input-wrap actual-exchange-input-wrap">
+                        <span class="currency-prefix" aria-hidden="true">₫</span>
+                        <input
+                          id="actualVndInput"
+                          class="money-input"
+                          type="text"
+                          inputmode="decimal"
+                          autocomplete="off"
+                          placeholder="例如 3m"
+                          aria-describedby="actualVndHint actualVndError"
+                        />
+                      </div>
+                      <p class="field-hint" id="actualVndHint">可輸入 3000000、3m 或 3.000.000</p>
+                      <p class="field-error" id="actualVndError" role="alert"></p>
+                    </div>
+                  </div>
+
+                  <div class="actual-exchange-result" id="actualExchangeResult">
+                    <div class="actual-exchange-result-copy" aria-live="polite" aria-atomic="true">
+                      <p>這次算出的匯率</p>
+                      <strong id="actualRateResult">—</strong>
+                      <span id="actualRateStatus">輸入兩筆金額後自動計算。</span>
+                    </div>
+                    <button class="primary-button actual-rate-apply-button" id="applyActualRateButton" type="button" disabled>
+                      輸入後即可使用
+                    </button>
+                  </div>
+                </section>
               </div>
-            </section>
+            </details>
 
             <details class="card denomination-reference" id="denominationReference" open>
               <summary class="denomination-reference-summary">
@@ -386,11 +515,57 @@
               </section>
             </div>
           </div>
+
+          <div
+            class="tab-panel"
+            id="phrasesPanel"
+            role="tabpanel"
+            aria-labelledby="phrasesTab"
+            tabindex="0"
+            hidden
+          >
+            <section class="card phrase-intro" aria-labelledby="phrasesTitle">
+              <div class="section-heading">
+                <div>
+                  <p class="section-kicker">旅途中直接出示</p>
+                  <h2 id="phrasesTitle">越南常用語字卡</h2>
+                </div>
+                <span class="section-number" aria-hidden="true">03</span>
+              </div>
+              <p>選擇情境快速找到句子，按「查看」即可放大越南文給對方看。</p>
+            </section>
+
+            <p class="phrase-status" id="phraseStatus" role="status" aria-live="polite"></p>
+            <div class="phrase-category-list" id="phraseCategoryList"></div>
+          </div>
         </div>
       </main>
 
     </div>
 
-    <script src="./app.js?v=24" defer></script>
+    <dialog class="phrase-view-dialog" id="phraseViewDialog" aria-labelledby="phraseViewChinese">
+      <div class="phrase-view-surface">
+        <button class="phrase-dialog-close" id="phraseViewCloseButton" type="button" aria-label="關閉字卡">×</button>
+        <div class="phrase-view-copy">
+          <p class="phrase-view-chinese" id="phraseViewChinese"></p>
+          <p class="phrase-view-vietnamese" id="phraseViewVietnamese" lang="vi"></p>
+        </div>
+        <button class="primary-button phrase-view-done" id="phraseViewDoneButton" type="button">關閉</button>
+      </div>
+    </dialog>
+
+    <dialog class="phrase-confirm-dialog" id="phraseConfirmDialog" aria-labelledby="phraseConfirmTitle" aria-describedby="phraseConfirmDescription">
+      <div class="phrase-confirm-surface">
+        <span class="phrase-confirm-icon" aria-hidden="true">!</span>
+        <h2 id="phraseConfirmTitle"></h2>
+        <p id="phraseConfirmDescription"></p>
+        <div class="phrase-confirm-actions">
+          <button class="secondary-button" id="phraseConfirmCancelButton" type="button">取消</button>
+          <button class="primary-button" id="phraseConfirmActionButton" type="button"></button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="./app.js?v=29" defer></script>
   </body>
 </html>

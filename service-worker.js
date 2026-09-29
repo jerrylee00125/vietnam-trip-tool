@@ -1,10 +1,10 @@
-const CACHE_NAME = "vietnam-shopping-v24";
-// Refresh the v24 app shell after the restored-list attention sequence changes.
+const CACHE_NAME = "vietnam-shopping-v29";
+// Refresh the v29 app shell after adding offline Vietnamese phrase cards.
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=24",
-  "./app.js?v=24",
+  "./styles.css?v=29",
+  "./app.js?v=29",
   "./manifest.webmanifest",
   "./favicon.svg",
   "./assets/denominations/500000.jpg",
