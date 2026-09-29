@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./dist/favicon.svg" alt="越南購物小幫手 APP 圖示" width="96" height="96">
+  <img src="favicon.svg" alt="越南購物小幫手 APP 圖示" width="96" height="96">
 </p>
 
 <h1 align="center">越南購物小幫手</h1>
