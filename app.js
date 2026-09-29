@@ -89,11 +89,11 @@
     "help-hello",
     "help-thanks",
     "shopping-price",
-    "shopping-card",
-    "shopping-bag",
+    "shopping-discount",
     "dining-no-ice",
-    "transport-address",
-    "help-no-vietnamese",
+    "dining-no-spicy",
+    "transport-where-address",
+    "dining-restroom",
   ];
   const PHRASE_CATEGORY_IDS = new Set(["favorites", ...PHRASE_CATEGORIES.map((category) => category.id)]);
   const CHANGE_DENOMINATIONS = [500000, 200000, 100000, 50000, 20000, 10000, 5000, 2000, 1000];
@@ -1465,7 +1465,7 @@
   updateActualExchangeRate();
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js?v=29").catch(() => {
+      navigator.serviceWorker.register("./service-worker.js?v=30").catch(() => {
         // The calculator remains fully usable if a local server does not support PWA registration.
       });
     });

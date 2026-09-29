@@ -1,10 +1,10 @@
-const CACHE_NAME = "vietnam-shopping-v29";
-// Refresh the v29 app shell after adding offline Vietnamese phrase cards.
+const CACHE_NAME = "vietnam-shopping-v30";
+// Refresh the v30 app shell after updating the default Vietnamese phrase cards.
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=29",
-  "./app.js?v=29",
+  "./styles.css?v=30",
+  "./app.js?v=30",
   "./manifest.webmanifest",
   "./favicon.svg",
   "./assets/denominations/500000.jpg",
